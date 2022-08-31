@@ -1,7 +1,5 @@
-from contextvars import copy_context
-import string
+
 import xarray as xa
-import csv
 import numpy as np
 import seaborn as sns
 import pandas as pd
@@ -10,6 +8,7 @@ def import_olabisi_hemi_xa():
     """"Import of the Olabisi cytokine data of aggregated dataset"""
     # str = unicode(str, errors='replace')
     hemi_totalDF = pd.read_csv("olabisi/olabisi_hemi_edited.csv").reset_index(drop=True)
+    # ["hMIG/CXCL9", "hMIP-1a","hMIP-1b"] had no signals for all conditions
     hemi_totalDF = hemi_totalDF.drop(["Plate", "Location","Well ID", "Sample ID", "Standard","hMIG/CXCL9", "hMIP-1a","hMIP-1b"],axis=1)
 
     rename_dict = {"mgh1_dual_03": "MGH1",
@@ -104,72 +103,57 @@ def import_olabisi_hemi_xa():
     
     cytokines = hemi_totalDF.columns.values
     cytokines = cytokines[3::]
-    cytok_none = ["sCD40L","hVEGF-A"]
-    
-    for cytoknone in cytok_none:
-        hemi_totalDF[cytoknone] = hemi_totalDF[cytoknone].fillna(np.NaN, inplace=True)
-        cytokvalues = hemi_totalDF[cytoknone].values
-        for i in range(len(cytokvalues)):
-            if cytokvalues[i] is None:
-                cytokvalues[i] = np.NaN
-        hemi_totalDF[cytoknone] = cytokvalues
-    
 
-    print()
-    # hemi_totalDF = hemi_totalDF.dropna(axis=1,how="all")
-    
     hemi_totalDF = hemi_totalDF.replace(rename_dict)
     hemi_totalDF = hemi_totalDF.rename({"Group":"Location","Cell": "Treatment","Time (days)":"Day"},axis=1)
     cytokines = hemi_totalDF.columns.values
     cytokines = cytokines[3::]
     
-    # print()
-    hemi_totalDF.sort_values(by=["Location", "Treatment", "Day"], inplace=True)
-    # print(cytokines)
-    # print(hemi_totalDF)
-    
-    # print(hemi_totalDF["Location"].unique())
-    # print(hemi_totalDF["Treatment"].unique())
-    # print(hemi_totalDF["Day"].unique())
-    
+    locations = hemi_totalDF["Location"].unique()
+    treatments = hemi_totalDF["Treatment"].unique()
+    days = np.sort(hemi_totalDF["Day"].unique())
 
     mean_olabisi_DF = pd.DataFrame([])
-    for i, loc in enumerate(hemi_totalDF["Location"].unique()):
-        for j, treat in enumerate(hemi_totalDF["Treatment"].unique()):
-            for k, time in enumerate(hemi_totalDF["Day"].values):
+    for i, loc in enumerate(locations):
+        for j, treat in enumerate(treatments):
+            for k, time in enumerate(days):
                 for l, mark in enumerate(cytokines):
                     conditionDF = hemi_totalDF.loc[(hemi_totalDF["Location"] == loc) & (hemi_totalDF["Treatment"] == treat) & (hemi_totalDF["Day"] == time)]
                     cytok = conditionDF[mark].values
-                    print(cytok)
-                    print(loc,treat,time,mark)
-                    print(type(cytok))
-                    print(np.shape(cytok))
+                    
+                    # Some conditions do not have any values 
                     if cytok.shape[0] == 0:
                         cytok =  np.empty(6)
                         cytok[:] = np.NaN
 
+                    # Import made values as strings, so now need to ensure all numbers are float
                     elif type(cytok[0]) or type(cytok[1]) or type(cytok[2]) == str:
-                        print("yes")
                         for m in range(len(cytok)):
                             if cytok[m] is not np.NaN:
                                 cytok[m] = float(cytok[m])
-                         
-                    # if np.all(np.isnan(cytok)) == True:
-                    #     print("yikes")
-                    
-                  
-                    
-                    # print(cytok)
-                    mean = np.nanmean(conditionDF[mark].values)
-                    mean_olabisi_DF = pd.concat([mean_olabisi_DF, pd.DataFrame({"Location": loc, "Treatment": treat, "Day": time, mark:[mean]})])
-                    
-                    
-                    
-                    
-                    
-    print(mean_olabisi_DF)          
-    
-    # hemi_XA = hemi_totalDF.set_index(["Location", "Treatment", "Day"]).to_xarray()
-    # flowDF = flowDF[cytokines].to_array(dim="Cytokines")
 
-    return hemi_totalDF
+                    mean = np.nanmean(cytok)
+                    # Obtaining average for every condition in to a DataFrame
+                    mean_olabisi_DF = pd.concat([mean_olabisi_DF, pd.DataFrame({"Location": loc, "Treatment": treat, "Day": time, "Cytokine": mark,
+                                                                                "Mean":[mean]})])
+                    
+                    
+    mean_olabisi_DF = mean_olabisi_DF.reset_index(drop=True) 
+    # Shape of Tensor: Location, Treatment, Day, and Cytokine
+    tensor = np.empty((len(locations), len(treatments), len(days), len(cytokines)))
+
+    tensor[:] = np.NaN
+    
+    # Converting DataFrame into an Xarray
+    for i, loc in enumerate(locations):
+        for j, treat in enumerate(treatments):
+            for k, time in enumerate(days):
+                for l, mark in enumerate(cytokines):
+                    entry = mean_olabisi_DF.loc[(mean_olabisi_DF["Location"] == loc) & (mean_olabisi_DF ["Treatment"] == treat) & (mean_olabisi_DF["Day"] == time) &
+                                                 (mean_olabisi_DF["Cytokine"] == mark)]["Mean"].values
+                    tensor[i,j,k,l] = entry
+                       
+    olabisiXA = xa.DataArray(tensor, dims=("Location", "Treatment", "Day", "Cytokine"), coords={"Location": locations, "Treatment": treatments,
+                                            "Day": days, "Cytokine": cytokines})
+
+    return olabisiXA 
