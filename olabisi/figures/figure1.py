@@ -2,6 +2,7 @@
 Figure 1
 """
 from .common import subplotLabel, getSetup
+from ..imports import import_olabisi_hemi_xa
 
 def makeFigure():
     """Get a list of the axis objects and create a figure."""
@@ -10,6 +11,10 @@ def makeFigure():
 
     # Add subplot labels
     subplotLabel(ax)
+    
+    print(import_olabisi_hemi_xa())
+
+
 
 
     return f
