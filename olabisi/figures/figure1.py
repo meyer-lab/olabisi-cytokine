@@ -9,7 +9,7 @@ from ..tensor import R2Xplot, tFac_DF, tensordecomp
 def makeFigure():
     """Get a list of the axis objects and create a figure."""
     # Get list of axis objects
-    ax, f = getSetup((8, 4), (1, 3))
+    ax, f = getSetup((8, 4), (2, 3))
 
     # Add subplot labels
     subplotLabel(ax)

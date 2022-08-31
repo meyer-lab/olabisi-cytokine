@@ -20,7 +20,7 @@ def R2Xplot(ax, original_tensor, rank):
     varHold = np.zeros(rank)
     for i in range(1, rank + 1):
         print(i)
-        tFac = tensordecomp(original_tensor, i)
+        tFac = tensordecomp(original_tensor.to_numpy(), i)
         varHold[i - 1] = calcR2X(original_tensor, tFac)
 
     ax.scatter(np.arange(1, rank + 1), varHold, c='k', s=20.)
@@ -37,12 +37,12 @@ def calcR2X(original_tensor, tensorFac):
 def tFac_DF(X, rank, nn=False):
     """This returns the normalized factors in dataframe form."""
     # Original_tensor == X
-    tFac = tensordecomp(X, rank, nn=False)
+    tFac = tensordecomp(X.to_numpy(), rank, nn=False)
     cp_factors = tl.cp_normalize(tFac)
     cmpCol = [f"Cmp. {i}" for i in np.arange(1, cp_factors.rank + 1)]
     coords = {X.dims[0]: X.coords[X.dims[0]],
               X.dims[1]: X.coords[X.dims[1]],
-              X.dims[1]: X.coords[X.dims[2]],
+              X.dims[2]: X.coords[X.dims[2]],
               X.dims[3]: X.coords[X.dims[3]]}
     
     fac_df = [pd.DataFrame(cp_factors.factors[i], columns=cmpCol, index=coords[key]) for i, key in enumerate(coords)]
