@@ -1,15 +1,17 @@
-
 import xarray as xa
 import numpy as np
 import seaborn as sns
 import pandas as pd
+from scipy.stats import zscore
 
 def import_olabisi_hemi_xa():
     """"Import of the Olabisi cytokine data of aggregated dataset"""
     # str = unicode(str, errors='replace')
-    hemi_totalDF = pd.read_csv("olabisi/olabisi_hemi_edited.csv").reset_index(drop=True)
+    hemi_totalDF = pd.read_csv("olabisi/data/olabisi_hemi_edited.csv").reset_index(drop=True)
     # ["hMIG/CXCL9", "hMIP-1a","hMIP-1b"] had no signals for all conditions
     hemi_totalDF = hemi_totalDF.drop(["Plate", "Location","Well ID", "Sample ID", "Standard","hMIG/CXCL9", "hMIP-1a","hMIP-1b"],axis=1)
+    hemi_lodDF = pd.read_csv("olabisi/data/olabisi_hemi_lod.csv").set_index("Analyte").transpose()
+    hemi_lodDF = hemi_lodDF.drop(["hMIG/CXCL9", "hMIP-1a","hMIP-1b"],axis=1).reset_index(drop=True)
 
     rename_dict = {"mgh1_dual_03": "MGH1",
                "mgh1_dual_06": "MGH1",
@@ -95,65 +97,63 @@ def import_olabisi_hemi_xa():
                "uci_dual_27": "UCI",
                "uci_dual_29":"UCI",
                "uci_dual_30":"UCI",
-               "ctrl_media":"Other",
-               "ctrl_isc": "Other",
-               "ctrl_dual":"Other",
-               "ctrl_msc": "Other",
                "-": np.NaN}
     
-    cytokines = hemi_totalDF.columns.values
-    cytokines = cytokines[3::]
+    remove_dict = ["ctrl_media", "ctrl_isc", "ctrl_dual", "ctrl_msc"]
 
+    # Renaming Dataframes
     hemi_totalDF = hemi_totalDF.replace(rename_dict)
     hemi_totalDF = hemi_totalDF.rename({"Group":"Location","Cell": "Treatment","Time (days)":"Day"},axis=1)
     cytokines = hemi_totalDF.columns.values
     cytokines = cytokines[3::]
+    # Ensuring all values for cytokines are values
+    hemi_totalDF[cytokines] = hemi_totalDF[cytokines].astype('float64')
     
+   # Removing all rows with remove_dict
+    for i, ctrl in enumerate(remove_dict):
+        hemi_totalDF = hemi_totalDF[hemi_totalDF["Location"] != ctrl]
+
+    # Replacing NaN values with limit of detection for each cytokine
+    for i, cyt in enumerate(cytokines):
+        hemi_totalDF[cyt] = hemi_totalDF[cyt].fillna(float(hemi_lodDF[cyt].values))
+        assert np.isfinite(hemi_totalDF[cyt].values.all())
+    
+    # Normalizing cytokines
+    hemi_totalDF[cytokines] = hemi_totalDF[cytokines].apply(zscore,axis=1)
+
     locations = hemi_totalDF["Location"].unique()
     treatments = hemi_totalDF["Treatment"].unique()
     days = np.sort(hemi_totalDF["Day"].unique())
-
+    
+    assert np.isfinite(hemi_totalDF[cytokines].values.all())
+    
+    # Building tensor/dataframe of mean values for each experimental condition combination
     mean_olabisi_DF = pd.DataFrame([])
+    tensor = np.empty((len(locations), len(treatments), len(days), len(cytokines)))
+    tensor[:] = np.NaN
+    
     for i, loc in enumerate(locations):
         for j, treat in enumerate(treatments):
             for k, time in enumerate(days):
                 for l, mark in enumerate(cytokines):
                     conditionDF = hemi_totalDF.loc[(hemi_totalDF["Location"] == loc) & (hemi_totalDF["Treatment"] == treat) & (hemi_totalDF["Day"] == time)]
                     cytok = conditionDF[mark].values
-                    
+
                     # Some conditions do not have any values 
                     if cytok.shape[0] == 0:
                         cytok =  np.empty(6)
                         cytok[:] = np.NaN
-
-                    # Import made values as strings, so now need to ensure all numbers are float
-                    elif type(cytok[0]) or type(cytok[1]) or type(cytok[2]) == str:
-                        for m in range(len(cytok)):
-                            if cytok[m] is not np.NaN:
-                                cytok[m] = float(cytok[m])
-
-                    mean = np.nanmean(cytok)
+                        
+                    mean = np.mean(cytok)
                     # Obtaining average for every condition in to a DataFrame
                     mean_olabisi_DF = pd.concat([mean_olabisi_DF, pd.DataFrame({"Location": loc, "Treatment": treat, "Day": time, "Cytokine": mark,
                                                                                 "Mean":[mean]})])
                     
-                    
-    mean_olabisi_DF = mean_olabisi_DF.reset_index(drop=True) 
-    # Shape of Tensor: Location, Treatment, Day, and Cytokine
-    tensor = np.empty((len(locations), len(treatments), len(days), len(cytokines)))
-
-    tensor[:] = np.NaN
+                    tensor[i,j,k,l] = mean
     
-    # Converting DataFrame into an Xarray
-    for i, loc in enumerate(locations):
-        for j, treat in enumerate(treatments):
-            for k, time in enumerate(days):
-                for l, mark in enumerate(cytokines):
-                    entry = mean_olabisi_DF.loc[(mean_olabisi_DF["Location"] == loc) & (mean_olabisi_DF ["Treatment"] == treat) & (mean_olabisi_DF["Day"] == time) &
-                                                 (mean_olabisi_DF["Cytokine"] == mark)]["Mean"].values
-                    tensor[i,j,k,l] = entry
-                       
+    mean_olabisi_DF = mean_olabisi_DF.reset_index(drop=True) 
+    # Shape of Tensor: Location, Treatment, Day, and Cytokine       
     olabisiXA = xa.DataArray(tensor, dims=("Location", "Treatment", "Day", "Cytokine"), coords={"Location": locations, "Treatment": treatments,
                                             "Day": days, "Cytokine": cytokines})
 
-    return olabisiXA 
+    return olabisiXA , mean_olabisi_DF, hemi_totalDF
