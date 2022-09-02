@@ -9,11 +9,13 @@ from ..tensor import R2Xplot, tFac_DF, tensordecomp
 def makeFigure():
     """Get a list of the axis objects and create a figure."""
     # Get list of axis objects
-    ax, f = getSetup((8, 4), (2, 3))
+    # ax, f = getSetup((10, 13), (2, 3),multz={9: 2})
+    ax, f = getSetup((12, 14), (2, 3))
 
     # Add subplot labels
     subplotLabel(ax)
-
+    ax[5].axis("off")
+    
     olabisiXA = import_olabisi_hemi_xa()
     R2Xplot(ax[0], olabisiXA, rank=3)
     fac_df = tFac_DF(X=olabisiXA, rank=3, nn=False)
