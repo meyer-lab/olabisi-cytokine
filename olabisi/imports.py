@@ -114,15 +114,13 @@ def import_olabisi_hemi_xa():
         hemi_totalDF = hemi_totalDF[hemi_totalDF["Location"] != ctrl]
 
     # Replacing NaN values with limit of detection for each cytokine
-    for i, cytok in enumerate(cytokines):
-        for j, cyt in enumerate(cytokines):
-            hemi_totalDF[cyt] = hemi_totalDF[cyt].fillna(float(hemi_lodDF[cyt].values))
-            assert np.isfinite(hemi_totalDF[cyt].values.all())
-        
+    for i, cyt in enumerate(cytokines):
+        hemi_totalDF[cyt] = hemi_totalDF[cyt].fillna(float(hemi_lodDF[cyt].values))
+        assert np.isfinite(hemi_totalDF[cyt].values.all())
+    
     # Normalizing cytokines
     hemi_totalDF[cytokines] = hemi_totalDF[cytokines].apply(zscore,axis=1)
-    
-    
+
     locations = hemi_totalDF["Location"].unique()
     treatments = hemi_totalDF["Treatment"].unique()
     days = np.sort(hemi_totalDF["Day"].unique())
@@ -152,7 +150,7 @@ def import_olabisi_hemi_xa():
                                                                                 "Mean":[mean]})])
                     
                     tensor[i,j,k,l] = mean
-                    
+    
     mean_olabisi_DF = mean_olabisi_DF.reset_index(drop=True) 
     # Shape of Tensor: Location, Treatment, Day, and Cytokine       
     olabisiXA = xa.DataArray(tensor, dims=("Location", "Treatment", "Day", "Cytokine"), coords={"Location": locations, "Treatment": treatments,
