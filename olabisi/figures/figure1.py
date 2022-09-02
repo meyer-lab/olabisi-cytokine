@@ -16,7 +16,7 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA = import_olabisi_hemi_xa()
+    olabisiXA, _, _ = import_olabisi_hemi_xa()
     R2Xplot(ax[0], olabisiXA, rank=3)
     fac_df = tFac_DF(X=olabisiXA, rank=3, nn=False)
     

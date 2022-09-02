@@ -127,6 +127,8 @@ def import_olabisi_hemi_xa():
     treatments = hemi_totalDF["Treatment"].unique()
     days = np.sort(hemi_totalDF["Day"].unique())
     
+    assert np.isfinite(hemi_totalDF[cytokines].values.all())
+    
     # Building tensor/dataframe of mean values for each experimental condition combination
     mean_olabisi_DF = pd.DataFrame([])
     tensor = np.empty((len(locations), len(treatments), len(days), len(cytokines)))
@@ -156,4 +158,4 @@ def import_olabisi_hemi_xa():
     olabisiXA = xa.DataArray(tensor, dims=("Location", "Treatment", "Day", "Cytokine"), coords={"Location": locations, "Treatment": treatments,
                                             "Day": days, "Cytokine": cytokines})
 
-    return olabisiXA 
+    return olabisiXA , mean_olabisi_DF, hemi_totalDF
