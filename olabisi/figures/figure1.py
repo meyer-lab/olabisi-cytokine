@@ -4,7 +4,7 @@ Figure 1
 import seaborn as sns
 from .common import subplotLabel, getSetup
 from ..imports import import_olabisi_hemi_xa
-from ..tensor import R2Xplot, tFac_DF, tensordecomp
+from ..tensor import R2Xplot, tFac_DF
 
 def makeFigure():
     """Get a list of the axis objects and create a figure."""
