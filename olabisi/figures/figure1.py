@@ -15,7 +15,7 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA, olabisiDF, totalDF = import_olabisi_hemi_xa(lod=False,zscore=True, perc_per_cyt=0.9)
+    olabisiXA, olabisiDF, _ = import_olabisi_hemi_xa(lod=False,zscore=True, perc_per_cyt=0.9)
     rank = 4
     print("Missing Values Percentange:",olabisiDF["Mean"].isnull().sum()/len(olabisiDF["Mean"]))
     
