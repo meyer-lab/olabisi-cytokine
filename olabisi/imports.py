@@ -1,10 +1,11 @@
+from optparse import Values
 import xarray as xa
 import numpy as np
 import seaborn as sns
 import pandas as pd
 from scipy.stats import zscore
 
-def import_olabisi_hemi_xa(lod=False,zscore=False, min_perc_exp_vals=0.5):
+def import_olabisi_hemi_xa(lod=False,zscore=False, perc_per_cyt=0.5):
     """"Import of the Olabisi cytokine data of aggregated dataset"""
     # str = unicode(str, errors='replace')
     hemi_totalDF = pd.read_csv("olabisi/data/olabisi_hemi_edited.csv").reset_index(drop=True)
@@ -129,7 +130,13 @@ def import_olabisi_hemi_xa(lod=False,zscore=False, min_perc_exp_vals=0.5):
             # Zscoring cytokines
             for i, cyt in enumerate(cytokines):
                 hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean())/hemi_totalDF[cyt].std()
-            
+    
+    reduced_cytokines = []
+    # Only keeps cytokines with specific percentage across all experiments
+    for i, cyt in enumerate(cytokines):
+       if 1-(np.count_nonzero(np.isnan(hemi_totalDF[cyt].values))/len(hemi_totalDF[cyt].values)) >= perc_per_cyt:
+           reduced_cytokines = np.append(reduced_cytokines,cyt)      
+                            
     locations = hemi_totalDF["Location"].unique()
     treatments = hemi_totalDF["Treatment"].unique()
     days = np.sort(hemi_totalDF["Day"].unique())
@@ -138,13 +145,15 @@ def import_olabisi_hemi_xa(lod=False,zscore=False, min_perc_exp_vals=0.5):
 
     # Building tensor/dataframe of mean values for each experimental condition combination
     mean_olabisi_DF = pd.DataFrame([])
-    tensor = np.empty((len(locations), len(treatments), len(days), len(cytokines)))
+    tensor = np.empty((len(locations), len(treatments), len(days), len(reduced_cytokines)))
     tensor[:] = np.NaN
     
+    print("Amount of Original Cytokines:",np.shape(cytokines))
+    print("Amount of Reduced Cytokines:", np.shape(reduced_cytokines))
     for i, loc in enumerate(locations):
         for j, treat in enumerate(treatments):
             for k, time in enumerate(days):
-                for l, mark in enumerate(cytokines):
+                for l, mark in enumerate(reduced_cytokines):
                     conditionDF = hemi_totalDF.loc[(hemi_totalDF["Location"] == loc) & (hemi_totalDF["Treatment"] == treat) & (hemi_totalDF["Day"] == time)]
                     cytok = conditionDF[mark].values
 
@@ -152,8 +161,8 @@ def import_olabisi_hemi_xa(lod=False,zscore=False, min_perc_exp_vals=0.5):
                     if cytok.shape[0] == 0:
                         mean = np.NaN
                     else:
-                        # Only uses means whose values are in at least percentage given of the experimental repeats
-                        if 1-(np.count_nonzero(np.isnan(cytok))/len(cytok)) >= min_perc_exp_vals:
+                        # Only uses means whose values are in at 50% given of the experimental repeats
+                        if 1-(np.count_nonzero(np.isnan(cytok))/len(cytok)) >= .5:
                             mean = np.nanmean(cytok)
                         else:
                             mean = np.NaN
@@ -167,6 +176,6 @@ def import_olabisi_hemi_xa(lod=False,zscore=False, min_perc_exp_vals=0.5):
     mean_olabisi_DF = mean_olabisi_DF.reset_index(drop=True) 
     # Shape of Tensor: Location, Treatment, Day, and Cytokine       
     olabisiXA = xa.DataArray(tensor, dims=("Location", "Treatment", "Day", "Cytokine"), coords={"Location": locations, "Treatment": treatments,
-                                            "Day": days, "Cytokine": cytokines})
+                                            "Day": days, "Cytokine": reduced_cytokines})
 
     return olabisiXA , mean_olabisi_DF, hemi_totalDF
