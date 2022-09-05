@@ -1,16 +1,15 @@
 import tensorly as tl
 import numpy as np
 import pandas as pd
-from tensorly.decomposition import non_negative_parafac, parafac
+from tensorly.decomposition import parafac
 from tensorly import partial_svd
+from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
 
 
 def tensordecomp(tensor, rank, td="perform_cp"):
     """ Takes Tensor, and mask and returns tensor factorized form. """
-    if td == "NN":
-        tfac = non_negative_parafac(np.nan_to_num(tensor), rank=rank, mask=np.isfinite(tensor), init='random', n_iter_max=5000, tol=1e-9, random_state=1)
-    elif td == "perform_cp":
+    if td == "perform_cp":
         tfac = perform_CP(tensor, r=rank, tol=1e-7, maxiter=5000, callback=None)
     else:
         tfac = parafac(np.nan_to_num(tensor), rank=rank, mask=np.isfinite(tensor), init='random', n_iter_max=5000, tol=1e-9, random_state=1)
@@ -31,10 +30,8 @@ def R2Xplot(ax, original_tensor, rank, td):
            ylim=(0, 1), xlim=(0, rank + 0.5), xticks=np.arange(0, rank + 1))
 
 
-def calcR2X(tFac, tIn=None, mIn=None):
+def calcR2X(tFac, tIn):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
-    assert (tIn is not None) or (mIn is not None)
-
     vTop, vBottom = 0.0, 0.0
 
     if tIn is not None:
@@ -42,12 +39,6 @@ def calcR2X(tFac, tIn=None, mIn=None):
         tIn = np.nan_to_num(tIn)
         vTop += np.linalg.norm(tl.cp_to_tensor(tFac) * tMask - tIn)**2.0
         vBottom += np.linalg.norm(tIn)**2.0
-    if mIn is not None:
-        mMask = np.isfinite(mIn)
-        recon = tFac if isinstance(tFac, np.ndarray) else buildMat(tFac)
-        mIn = np.nan_to_num(mIn)
-        vTop += np.linalg.norm(recon * mMask - mIn)**2.0
-        vBottom += np.linalg.norm(mIn)**2.0
 
     return 1.0 - vTop / vBottom
 
@@ -189,20 +180,6 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=500, callback=None):
 
     return tFac
 
-def cp_normalize(tFac):
-    """ Normalize the factors using the inf norm. """
-    for i, factor in enumerate(tFac.factors):
-        scales = np.linalg.norm(factor, ord=np.inf, axis=0)
-        tFac.weights *= scales
-        if i == 0 and hasattr(tFac, 'mFactor'):
-            mScales = np.linalg.norm(tFac.mFactor, ord=np.inf, axis=0)
-            tFac.mWeights = scales * mScales
-            tFac.mFactor /= mScales
-
-        tFac.factors[i] /= scales
-
-    return tFac
-
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None) -> np.ndarray:
     """Solves least squares problem subject to missing data.
     Note: uses a for loop over the missing patterns of B, leading to a
@@ -229,12 +206,6 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None) -> np.ndarray:
         Bx = B[uu, :]
         X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=-1)[0]
     return X.T
-
-def buildMat(tFac):
-    """ Build the matrix in CMTF from the factors. """
-    if hasattr(tFac, 'mWeights'):
-        return tFac.factors[0] @ (tFac.mFactor * tFac.mWeights).T
-    return tFac.factors[0] @ tFac.mFactor.T
 
 
 class IterativeSVD(object):
