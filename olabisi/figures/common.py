@@ -6,10 +6,7 @@ import sys
 import time
 import seaborn as sns
 import matplotlib
-import numpy as np
-import tensorly as tl
 from matplotlib import gridspec, pyplot as plt
-from matplotlib.patches import Ellipse
 
 matplotlib.use("AGG")
 

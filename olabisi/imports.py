@@ -1,6 +1,5 @@
 import xarray as xa
 import numpy as np
-import seaborn as sns
 import pandas as pd
 from scipy.stats import zscore
 

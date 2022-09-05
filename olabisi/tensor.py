@@ -1,12 +1,9 @@
 import tensorly as tl
 import numpy as np
-import seaborn as sns
 import pandas as pd
 from tensorly.decomposition import non_negative_parafac, parafac
 from tensorly import partial_svd
 from tensorly.tenalg import khatri_rao
-from copy import deepcopy
-from tqdm import tqdm
 
 
 def tensordecomp(tensor, rank, td="perform_cp"):
@@ -14,7 +11,7 @@ def tensordecomp(tensor, rank, td="perform_cp"):
     if td == "NN":
         tfac = non_negative_parafac(np.nan_to_num(tensor), rank=rank, mask=np.isfinite(tensor), init='random', n_iter_max=5000, tol=1e-9, random_state=1)
     elif td == "perform_cp":
-        tfac = perform_CP(tensor, r=rank, tol=1e-6, maxiter=5000, progress=False, callback=None)
+        tfac = perform_CP(tensor, r=rank, tol=1e-7, maxiter=5000, callback=None)
     else:
         tfac = parafac(np.nan_to_num(tensor), rank=rank, mask=np.isfinite(tensor), init='random', n_iter_max=5000, tol=1e-9, random_state=1)
 
@@ -158,7 +155,7 @@ def initialize_cp(tensor: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
+def perform_CP(tOrig, r=6, tol=1e-6, maxiter=500, callback=None):
     """ Perform CP decomposition. """
     if callback: callback.begin()
     tFac = initialize_cp(tOrig, r)
@@ -173,8 +170,7 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
-    tq = tqdm(range(maxiter), disable=(not progress))
-    for i in tq:
+    for i in range(maxiter):
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
@@ -182,7 +178,7 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
 
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
-        tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
+
         assert tFac.R2X > 0.0
         if callback: callback.update(tFac)
 

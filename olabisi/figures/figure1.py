@@ -4,7 +4,7 @@ Figure 1
 import seaborn as sns
 from .common import subplotLabel, getSetup
 from ..imports import import_olabisi_hemi_xa
-from ..tensor import R2Xplot, tFac_DF, tensordecomp
+from ..tensor import R2Xplot, tFac_DF
 
 def makeFigure():
     """Get a list of the axis objects and create a figure."""
@@ -15,8 +15,8 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA, olabisiDF, totalDF = import_olabisi_hemi_xa(lod=False,zscore=True,min_perc_exp_vals=0.1)
-    rank = 10
+    olabisiXA, olabisiDF, _ = import_olabisi_hemi_xa(lod=False, zscore=True, min_perc_exp_vals=0.5)
+    rank = 3
     print("Missing Values Percentange:",olabisiDF["Mean"].isnull().sum()/len(olabisiDF["Mean"]))
     
     R2Xplot(ax[0], olabisiXA, rank=rank, td="perform_cp")
