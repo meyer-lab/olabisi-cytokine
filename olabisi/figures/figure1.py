@@ -15,9 +15,10 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA, olabisiDF, _ = import_olabisi_hemi_xa(lod=False, zscore=True, min_perc_exp_vals=0.5)
-    rank = 3
+    olabisiXA, olabisiDF, _ = import_olabisi_hemi_xa(lod=False,zscore=True, perc_per_cyt=0.9)
+    rank = 4
     print("Missing Values Percentange:",olabisiDF["Mean"].isnull().sum()/len(olabisiDF["Mean"]))
+    
     
     R2Xplot(ax[0], olabisiXA, rank=rank, td="perform_cp")
     fac_df = tFac_DF(X=olabisiXA, rank=rank, td="perform_cp")
