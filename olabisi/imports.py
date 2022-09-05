@@ -18,7 +18,7 @@ def import_olabisi_hemi_xa(lod=False,zscore=False, perc_per_cyt=0.5):
     # Ensuring all values for cytokines are values
     hemi_totalDF[cytokines] = hemi_totalDF[cytokines].astype('float64')
 
-   # Removing all rows with remove_dict
+   # Removing all rows with string
     hemi_totalDF = hemi_totalDF[hemi_totalDF["Location"] != "ctrl"]
 
     # Replacing NaN values with limit of detection for each cytokine
