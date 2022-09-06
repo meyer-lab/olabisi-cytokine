@@ -11,7 +11,11 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
         ["Plate", "Location", "Well ID", "Sample ID", "Standard"], axis=1
     )
 
+    rename_days = [5, 14, 16, 26, 31]
+    new_days = [6, 13, 15, 27, 30]
+    remove_dict = ["ctrl_media", "ctrl_isc", "ctrl_dual", "ctrl_msc"]
     # Renaming Dataframes
+    hemi_totalDF = hemi_totalDF.replace(rename_days, new_days)
     hemi_totalDF["Group"] = hemi_totalDF["Group"].str.split("_").str[0]
     hemi_totalDF = hemi_totalDF.rename({"Group": "Location"}, axis=1)
     cytokines = hemi_totalDF.columns.values
@@ -40,9 +44,6 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
             hemi_totalDF[cyt] = (
                 hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
             ) / hemi_totalDF[cyt].std()
-
-    print("Amount of Original Cytokines:", np.shape(cytokines))
-
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
     hemi_meanDF = hemi_totalDF.groupby(gcol).mean()

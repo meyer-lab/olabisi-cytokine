@@ -24,6 +24,7 @@ def makeFigure():
     R2Xplot(ax[0], olabisiXA, rank=rank)
     fac_df = tFac_DF(X=olabisiXA, rank=rank)
 
+
     for i in range(0, 4):
         """Plots tensor factorization of cells"""
         sns.heatmap(
