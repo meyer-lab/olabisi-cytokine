@@ -13,6 +13,7 @@ scikit-learn = "^1.1.1"
 seaborn = "^0.11.2"
 tensorly = "0.7.0"
 xarray = "^2022.3.0"
+tensorpack = {git = "https://github.com/meyer-lab/tensorpack.git", branch = "main"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

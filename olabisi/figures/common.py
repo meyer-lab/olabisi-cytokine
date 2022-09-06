@@ -26,7 +26,13 @@ matplotlib.rcParams["svg.fonttype"] = "none"
 
 def getSetup(figsize, gridd, multz=None, empts=None, constrained_layout=True):
     """Establish figure set-up with subplots."""
-    sns.set(style="whitegrid", font_scale=0.7, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
+    sns.set(
+        style="whitegrid",
+        font_scale=0.7,
+        color_codes=True,
+        palette="colorblind",
+        rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6},
+    )
 
     # create empty list if empts isn't specified
     if empts is None:
@@ -56,7 +62,14 @@ def getSetup(figsize, gridd, multz=None, empts=None, constrained_layout=True):
 def subplotLabel(axs):
     """Place subplot labels on figure."""
     for ii, ax in enumerate(axs):
-        ax.text(-0.2, 1.2, ascii_lowercase[ii], transform=ax.transAxes, fontweight="bold", va="top")
+        ax.text(
+            -0.2,
+            1.2,
+            ascii_lowercase[ii],
+            transform=ax.transAxes,
+            fontweight="bold",
+            va="top",
+        )
 
 
 def genFigure():
@@ -70,4 +83,3 @@ def genFigure():
     ff.savefig(fdir + nameOut + ".svg", dpi=300, bbox_inches="tight", pad_inches=0)
 
     print(f"Figure {sys.argv[1]} is done after {time.time() - start} seconds.\n")
-
