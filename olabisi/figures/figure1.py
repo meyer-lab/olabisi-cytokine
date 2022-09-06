@@ -16,23 +16,24 @@ def makeFigure():
     # Add subplot labels
     subplotLabel(ax)
     ax[5].axis("off")
-    olabisiXA, _ = import_olabisi_hemi_xa(lod=False, zscore=True)
+    
+    olabisiXA, _ = import_olabisi_hemi_xa(lod=False, zscore=True, perc_per_cyt=.1)
     rank = 4
  
     for i, days in enumerate(olabisiXA["Day"].values):
         print("Day:", days, "Missing Values Percentange:", np.mean(np.isnan(olabisiXA.isel(Day=i).values)))
     
     print("Total Missing Values Percentange:", np.mean(np.isnan(olabisiXA)))  
-    # R2Xplot(ax[0], olabisiXA, rank=rank)
-    # fac_df = tFac_DF(X=olabisiXA, rank=rank)
+    R2Xplot(ax[0], olabisiXA, rank=rank)
+    fac_df = tFac_DF(X=olabisiXA, rank=rank)
 
 
-    # for i in range(0, 4):
-    #     """Plots tensor factorization of cells"""
-    #     sns.heatmap(
-    #         data=fac_df[i],
-    #         ax=ax[i + 1],
-    #         cmap=sns.diverging_palette(240, 10, as_cmap=True),
-    #     )
+    for i in range(0, 4):
+        """Plots tensor factorization of cells"""
+        sns.heatmap(
+            data=fac_df[i],
+            ax=ax[i + 1],
+            cmap=sns.diverging_palette(240, 10, as_cmap=True),
+        )
 
     return f

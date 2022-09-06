@@ -11,9 +11,10 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
         ["Plate", "Location", "Well ID", "Sample ID", "Standard"], axis=1
     )
     # Replacing days of the experiments
-    rename_days = [5, 14, 16, 21, 23, 26, 28, 31]
-    new_days = [6, 13, 15, 20, 22, 27, 29, 30]
-    remove_dict = ["ctrl_media", "ctrl_isc", "ctrl_dual", "ctrl_msc"]
+    rename_days = [5, 12, 14, 16, 21, 23, 26, 28, 31]
+    new_days = [6, 13, 13, 15, 20, 22, 27, 29, 30]
+    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 24]
+    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 33]
     # Renaming Dataframes
     hemi_totalDF = hemi_totalDF.replace(rename_days, new_days)
     hemi_totalDF["Group"] = hemi_totalDF["Group"].str.split("_").str[0]
