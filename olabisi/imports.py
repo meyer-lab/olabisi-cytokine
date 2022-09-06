@@ -10,18 +10,31 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
     hemi_totalDF = hemi_totalDF.drop(
         ["Plate", "Location", "Well ID", "Sample ID", "Standard"], axis=1
     )
-
+    # Replacing days of the experiments
+    rename_days = [5, 12, 14, 16, 21, 23, 26, 28, 31]
+    new_days = [6, 13, 13, 15, 20, 22, 27, 29, 30]
+    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 24]
+    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 33]
     # Renaming Dataframes
+    hemi_totalDF = hemi_totalDF.replace(rename_days, new_days)
     hemi_totalDF["Group"] = hemi_totalDF["Group"].str.split("_").str[0]
     hemi_totalDF = hemi_totalDF.rename({"Group": "Location"}, axis=1)
     cytokines = hemi_totalDF.columns.values
     cytokines = cytokines[3::]
+    
+    
     # Ensuring all values for cytokines are values
     hemi_totalDF[cytokines] = hemi_totalDF[cytokines].astype("float64")
 
     # Removing all rows with string
     hemi_totalDF = hemi_totalDF[hemi_totalDF["Location"] != "ctrl"]
-
+    
+    for i in hemi_totalDF["Location"].unique():
+        for j in hemi_totalDF["Treatment"].unique():
+            timeDF = hemi_totalDF.loc[(hemi_totalDF["Location"] == i) & (hemi_totalDF["Treatment"] == j)]
+            print("Location:", i, "Treatment:", j , "Time:", timeDF["Day"].unique())
+            
+            
     # Replacing NaN values with limit of detection for each cytokine
     if lod is True:
         hemi_lodDF = (
@@ -40,9 +53,7 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
             hemi_totalDF[cyt] = (
                 hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
             ) / hemi_totalDF[cyt].std()
-
-    print("Amount of Original Cytokines:", np.shape(cytokines))
-
+            
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
     hemi_meanDF = hemi_totalDF.groupby(gcol).mean()
