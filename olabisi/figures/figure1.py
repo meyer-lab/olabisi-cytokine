@@ -33,4 +33,5 @@ def makeFigure():
             cmap=sns.diverging_palette(240, 10, as_cmap=True),
         )
 
+
     return f
