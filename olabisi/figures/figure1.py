@@ -17,11 +17,11 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA, _ = import_olabisi_hemi_xa()
+    olabisiXA, _ = import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1)
  
     for i, days in enumerate(olabisiXA["Day"].values):
         print("Day:", days, "Missing Values Percentange:", np.mean(np.isnan(olabisiXA.isel(Day=i).values)))
-    print("Total Missing Values Percentange:", np.mean(np.isnan(olabisiXA)))  
+    print("Total Missing Values Percentange:", np.mean(np.isnan(olabisiXA.to_numpy())))  
     
     R2Xplot(ax[0], olabisiXA, rank=5)
     fac_df = tFac_DF(X=olabisiXA, rank=4)
