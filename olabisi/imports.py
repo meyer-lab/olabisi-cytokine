@@ -19,11 +19,10 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
     hemi_totalDF = hemi_totalDF.replace(rename_days, new_days)
     hemi_totalDF["Group"] = hemi_totalDF["Group"].str.split("_").str[0]
     hemi_totalDF = hemi_totalDF.rename({"Group": "Location"}, axis=1)
-    cytokines = hemi_totalDF.columns.values
-    cytokines = cytokines[3::]
-    
     
     # Ensuring all values for cytokines are values
+    cytokines = hemi_totalDF.columns.values
+    cytokines = cytokines[3::]
     hemi_totalDF[cytokines] = hemi_totalDF[cytokines].astype("float64")
 
     # Removing all rows with string
@@ -33,15 +32,11 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
         for j in hemi_totalDF["Treatment"].unique():
             timeDF = hemi_totalDF.loc[(hemi_totalDF["Location"] == i) & (hemi_totalDF["Treatment"] == j)]
             print("Location:", i, "Treatment:", j , "Time:", timeDF["Day"].unique())
-            
-            
+                
     # Replacing NaN values with limit of detection for each cytokine
     if lod is True:
-        hemi_lodDF = (
-            pd.read_csv("olabisi/data/olabisi_hemi_lod.csv")
-            .set_index("Analyte")
-            .transpose()
-        )
+        hemi_lodDF = (pd.read_csv("olabisi/data/olabisi_hemi_lod.csv")
+                        .set_index("Analyte").transpose())
         hemi_lodDF = hemi_lodDF.reset_index(drop=True)
         for cyt in cytokines:
             hemi_totalDF[cyt] = hemi_totalDF[cyt].fillna(float(hemi_lodDF[cyt].values))
@@ -50,11 +45,11 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
     # Log transform
     hemi_totalDF[cyt] = np.log(hemi_totalDF[cyt])
 
-    # Zscoring cytokines
+    # Substracting by arithmetic mean
     for cyt in cytokines:
-        hemi_totalDF[cyt] = (
-            hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
-        ) / hemi_totalDF[cyt].std()
+        # hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()) / hemi_totalDF[cyt].std()
+        hemi_totalDF[cyt] = hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
+        
             
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
@@ -62,12 +57,9 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
     olabisiXA = hemi_meanDF.to_xarray()
     olabisiXA = olabisiXA.to_array(dim="Cytokines")
 
-    print(olabisiXA.shape)
-
     # Remove mostly missing cytokines
-    olabisiXA = olabisiXA.loc[
-        np.mean(np.isfinite(olabisiXA), axis=(1, 2, 3)) >= perc_per_cyt, :, :, :
-    ]
+    olabisiXA = olabisiXA.loc[np.mean(np.isfinite(olabisiXA), axis=(1, 2, 3)) >= 
+                                perc_per_cyt, :, :, :]
 
     print(olabisiXA.shape)
 
