@@ -8,7 +8,7 @@ all: $(patsubst olabisi/figures/figure%.py, output/figure%.svg, $(flist))
 
 output/figure%.svg: olabisi/figures/figure%.py
 	@ mkdir -p ./output
-	XLA_PYTHON_CLIENT_MEM_FRACTION=0.3 poetry run fbuild $*
+	poetry run fbuild $*
 
 clean:
 	rm -rf output

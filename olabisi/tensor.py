@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from tensorpack import perform_CP, calcR2X
+from tensorpack import perform_CP
 
 
 def tensordecomp(tensor, rank):
@@ -14,7 +14,7 @@ def R2Xplot(ax, original_tensor, rank):
     for i in range(1, rank + 1):
         print("Rank:", i)
         tFac = tensordecomp(original_tensor.to_numpy(), i)
-        varHold[i - 1] = calcR2X(tFac, original_tensor)
+        varHold[i - 1] = tFac.R2X
 
     ax.scatter(np.arange(1, rank + 1), varHold, c="k", s=20.0)
     ax.set(

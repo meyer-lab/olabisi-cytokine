@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
+def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
     """ "Import of the Olabisi cytokine data of aggregated dataset"""
     hemi_totalDF = pd.read_csv(
         "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
@@ -47,12 +47,14 @@ def import_olabisi_hemi_xa(lod=False, zscore=False, perc_per_cyt=0.1):
             hemi_totalDF[cyt] = hemi_totalDF[cyt].fillna(float(hemi_lodDF[cyt].values))
             assert np.isfinite(hemi_totalDF[cyt].values.all())
 
-    if zscore is True:
-        # Zscoring cytokines
-        for cyt in cytokines:
-            hemi_totalDF[cyt] = (
-                hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
-            ) / hemi_totalDF[cyt].std()
+    # Log transform
+    hemi_totalDF[cyt] = np.log(hemi_totalDF[cyt])
+
+    # Zscoring cytokines
+    for cyt in cytokines:
+        hemi_totalDF[cyt] = (
+            hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
+        ) / hemi_totalDF[cyt].std()
             
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]

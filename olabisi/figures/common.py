@@ -24,7 +24,7 @@ matplotlib.rcParams["legend.borderpad"] = 0.35
 matplotlib.rcParams["svg.fonttype"] = "none"
 
 
-def getSetup(figsize, gridd, multz=None, empts=None, constrained_layout=True):
+def getSetup(figsize, gridd):
     """Establish figure set-up with subplots."""
     sns.set(
         style="whitegrid",
@@ -34,26 +34,15 @@ def getSetup(figsize, gridd, multz=None, empts=None, constrained_layout=True):
         rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6},
     )
 
-    # create empty list if empts isn't specified
-    if empts is None:
-        empts = []
-
-    if multz is None:
-        multz = {}
-
     # Setup plotting space and grid
-    f = plt.figure(figsize=figsize, constrained_layout=constrained_layout)
+    f = plt.figure(figsize=figsize, constrained_layout=True)
     gs1 = gridspec.GridSpec(*gridd, figure=f)
 
     # Get list of axis objects
     x = 0
     ax = []
     while x < gridd[0] * gridd[1]:
-        if x not in empts and x not in multz.keys():  # If this is just a normal subplot
-            ax.append(f.add_subplot(gs1[x]))
-        elif x in multz.keys():  # If this is a subplot that spans grid elements
-            ax.append(f.add_subplot(gs1[x : x + multz[x] + 1]))
-            x += multz[x]
+        ax.append(f.add_subplot(gs1[x]))
         x += 1
 
     return (ax, f)
