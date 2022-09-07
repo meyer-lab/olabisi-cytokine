@@ -43,14 +43,13 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
             assert np.isfinite(hemi_totalDF[cyt].values.all())
 
     # Log transform
-    hemi_totalDF[cyt] = np.log(hemi_totalDF[cyt])
+    hemi_totalDF[cytokines] = np.log(hemi_totalDF[cytokines])
 
     # Substracting by arithmetic mean
     for cyt in cytokines:
         # hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()) / hemi_totalDF[cyt].std()
         hemi_totalDF[cyt] = hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
         
-            
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
     hemi_meanDF = hemi_totalDF.groupby(gcol).mean()

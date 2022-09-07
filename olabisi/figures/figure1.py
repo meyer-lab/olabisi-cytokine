@@ -17,7 +17,7 @@ def makeFigure():
     subplotLabel(ax)
     ax[5].axis("off")
     
-    olabisiXA, _ = import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1)
+    olabisiXA, _ = import_olabisi_hemi_xa(lod=False, perc_per_cyt=0.1)
  
     for i, days in enumerate(olabisiXA["Day"].values):
         print("Day:", days, "Missing Values Percentange:", np.mean(np.isnan(olabisiXA.isel(Day=i).values)))
