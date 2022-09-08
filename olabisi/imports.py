@@ -8,8 +8,7 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
         "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
     ).reset_index(drop=True)
     hemi_totalDF = hemi_totalDF.drop(
-        ["Plate", "Location", "Well ID", "Sample ID", "Standard"], axis=1
-    )
+        ["Plate", "Location", "Well ID"], axis=1)
     # Replacing days of the experiments
     rename_days = [5, 12, 14, 16, 21, 23, 26, 28, 31]
     new_days = [6, 13, 13, 15, 20, 22, 27, 29, 30]
@@ -44,12 +43,15 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
 
     # Log transform
     hemi_totalDF[cytokines] = np.log(hemi_totalDF[cytokines])
-
+    
+    # Substracting across rows to account for dilution  
+    row_mean = np.reshape(hemi_totalDF[cytokines].mean(axis=1).values, (-1, 1))
+    hemi_totalDF[cytokines] = hemi_totalDF[cytokines].sub(row_mean)
+    
     # Substracting by arithmetic mean
     for cyt in cytokines:
-        # hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()) / hemi_totalDF[cyt].std()
-        hemi_totalDF[cyt] = hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()
-        
+        hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()) / hemi_totalDF[cyt].std()
+    
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
     hemi_meanDF = hemi_totalDF.groupby(gcol).mean()
