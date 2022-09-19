@@ -5,8 +5,7 @@ from tensorpack import perform_CP
 
 def tensordecomp(tensor, rank):
     """Takes Tensor, and mask and returns tensor factorized form."""
-    return perform_CP(tensor, r=rank, tol=1e-7, maxiter=5000)
-
+    return perform_CP(tensor, r=rank, tol=1e-7, maxiter=20000)
 
 def R2Xplot(ax, original_tensor, rank):
     """Creates R2X plot for non-neg CP tensor decomposition"""

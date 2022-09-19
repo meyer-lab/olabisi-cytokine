@@ -2,25 +2,30 @@ import numpy as np
 import pandas as pd
 
 
-def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
+def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1,data="total"):
     """ "Import of the Olabisi cytokine data of aggregated dataset"""
-    # hemi_totalDF = pd.read_csv(
-    #     "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
-    # ).reset_index(drop=True)
-    # hemi_totalDF = hemi_totalDF.drop(
-    #     ["Plate", "Location", "Well ID"], axis=1)
-    hemi_totalDF = pd.read_csv(
-        "olabisi/data/olabisi_WO_mgh1.csv", na_values="-"
+    if data == "total":
+        hemi_totalDF = pd.read_csv(
+        "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
     ).reset_index(drop=True)
+    
+    elif data == "nomgh1":
+        hemi_totalDF = pd.read_csv(
+        "olabisi/data/olabisi_WO_mgh1.csv", na_values="-"
+        ).reset_index(drop=True)
+        
     hemi_totalDF = hemi_totalDF.drop(
         ["Plate", "Location", "Well ID"], axis=1)
     # Replacing days of the experiments
     rename_days = [5, 12, 14, 16, 21, 23, 26, 28, 31]
     new_days = [6, 13, 13, 15, 20, 22, 27, 29, 30]
-    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 24]
-    hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != 33]
+    # remove_days = [8, 17, 22, 27, 29, 30, 24, 33]
+    remove_days = [24, 33]
+
     # Renaming Dataframes
     hemi_totalDF = hemi_totalDF.replace(rename_days, new_days)
+    for i in range(len(remove_days)):
+        hemi_totalDF = hemi_totalDF[hemi_totalDF["Day"] != remove_days[i]]
     hemi_totalDF["Group"] = hemi_totalDF["Group"].str.split("_").str[0]
     hemi_totalDF = hemi_totalDF.rename({"Group": "Location"}, axis=1)
     
