@@ -4,8 +4,13 @@ import pandas as pd
 
 def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1):
     """ "Import of the Olabisi cytokine data of aggregated dataset"""
+    # hemi_totalDF = pd.read_csv(
+    #     "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
+    # ).reset_index(drop=True)
+    # hemi_totalDF = hemi_totalDF.drop(
+    #     ["Plate", "Location", "Well ID"], axis=1)
     hemi_totalDF = pd.read_csv(
-        "olabisi/data/olabisi_hemi_edited.csv", na_values="-"
+        "olabisi/data/olabisi_WO_mgh1.csv", na_values="-"
     ).reset_index(drop=True)
     hemi_totalDF = hemi_totalDF.drop(
         ["Plate", "Location", "Well ID"], axis=1)
