@@ -58,20 +58,21 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1,data="total"):
     row_mean = np.reshape(hemi_totalDF[cytokines].mean(axis=1).values, (-1, 1))
     hemi_totalDF[cytokines] = hemi_totalDF[cytokines].sub(row_mean)
     
-    # Substracting by arithmetic mean
+    # Zscoring
     for cyt in cytokines:
         hemi_totalDF[cyt] = (hemi_totalDF[cyt] - hemi_totalDF[cyt].mean()) / hemi_totalDF[cyt].std()
     
     # Reshape to tensor
     gcol = ["Location", "Treatment", "Day"]
-    hemi_meanDF = hemi_totalDF.groupby(gcol).mean()
+    hemi_meanDF = hemi_totalDF.groupby(by=gcol).mean()
+
     olabisiXA = hemi_meanDF.to_xarray()
     olabisiXA = olabisiXA.to_array(dim="Cytokines")
-
     # Remove mostly missing cytokines
     olabisiXA = olabisiXA.loc[np.mean(np.isfinite(olabisiXA), axis=(1, 2, 3)) >= 
                                 perc_per_cyt, :, :, :]
 
     print(olabisiXA.shape)
+    
 
-    return olabisiXA, hemi_totalDF
+    return olabisiXA, hemi_totalDF.groupby(by=gcol).mean().reset_index()
