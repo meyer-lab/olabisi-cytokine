@@ -16,9 +16,10 @@ def makeFigure():
 
     # Add subplot labels
     subplotLabel(ax)
-    ax[5].axis("off")
-    olabisiXA, olabisiDF = import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1, data="nomgh1")
+    
+    olabisiXA, olabisiDF, meanDF = import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1, data="nomgh1")
     plsr_model(olabisiDF,ax[0],ax[1],ax[2], ncomp=10)
+    plsr_model(meanDF,ax[3],ax[4],ax[5], ncomp=10)
     
     # print(olabisiXA)
     # for i, days in enumerate(olabisiXA["Day"].values):

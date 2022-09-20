@@ -75,4 +75,4 @@ def import_olabisi_hemi_xa(lod=True, perc_per_cyt=0.1,data="total"):
     print(olabisiXA.shape)
     
 
-    return olabisiXA, hemi_totalDF.groupby(by=gcol).mean().reset_index()
+    return olabisiXA, hemi_totalDF, hemi_totalDF.groupby(by=gcol).mean().reset_index()
