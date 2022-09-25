@@ -7,7 +7,6 @@ import seaborn as sns
 from .common import subplotLabel, getSetup
 from ..imports import import_olabisi_hemi_xa
 from ..tensor import R2Xplot, tFac_DF
-from ..plsr import plsr_model
 
 
 def makeFigure():
