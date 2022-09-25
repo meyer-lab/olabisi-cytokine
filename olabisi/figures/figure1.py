@@ -1,5 +1,5 @@
 """
-Figure 1: Investigating of tensor decomposition of mean cytokine signals
+Figure 1: Investigation of tensor decomposition for mean cytokine signals
 """
 from unittest import skip
 import numpy as np

@@ -1,5 +1,5 @@
 """
-Figure 3: Investigates cytokines signals of raw/mean data
+Figure 3: Investigating cytokines signals of raw/mean data
 """
 from unittest import skip
 import numpy as np
