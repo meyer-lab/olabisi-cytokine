@@ -1,7 +1,6 @@
 """
 Figure 1: Investigation of tensor decomposition for mean cytokine signals
 """
-from unittest import skip
 import numpy as np
 import seaborn as sns
 from .common import subplotLabel, getSetup
