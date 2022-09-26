@@ -1,7 +1,6 @@
 """
 Figure 2: PLSR model of determining if data can predict MSC vs. Dual
 """
-from unittest import skip
 import numpy as np
 import seaborn as sns
 from .common import subplotLabel, getSetup
