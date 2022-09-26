@@ -36,5 +36,16 @@ def makeFigure():
             sns.lineplot(data=newDF,x="Day", y=cytok, hue="Treatment", ax=ax[axis]).set(title="Location:"+loc)
             axis += 1 
             print(k)
-           
+            
+    # for i, cytok in enumerate(cytokines):
+    #     if i > 23:
+    #         pass
+    #     # if i <= 23:
+    #     #     pass
+    #     else:
+    #         continue
+    #     sns.lineplot(data=meanDF,x="Day", y=cytok, hue="Treatment", style="Location", ax=ax[axis])
+    #     axis += 1 
+    #     print(k)
+             
     return f
